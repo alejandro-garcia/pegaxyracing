@@ -3,12 +3,12 @@ import numpy
 import pyautogui
 import mss
 import time
-from os import listdir
+from os import listdir, remove
 import colorama
 from colorama import Fore, Back, Style
 from datetime import datetime
-import pygetwindow
-
+import sys
+import glob
 
 now = datetime.now()
 
@@ -68,7 +68,7 @@ print(logo3)
 print(Fore.RED + logo4 + Style.RESET_ALL)
 print('Starting pegaxy racing bot...')
 print('\n')
-time.sleep(5)
+time.sleep(3)
 
 """
 to get window name:
@@ -78,17 +78,33 @@ print(window)
 
 """
 
+active_window_name = None
+if sys.platform in ['linux', 'linux2']:
+    pass
+    # import gi
+    # gi.require_version('Wnck', '3.0')
+    # from gi.repository import Gtk, Wnck
+    # Gtk.init([])  # necessary if not using a Gtk.main() loop
+    # screen = Wnck.Screen.get_default()
+    # screen.force_update()  # recommended per Wnck documentation
+    # active_window = screen.get_active_window()
+    # pid = active_window.get_pid()
+    # with open("/proc/{pid}/cmdline".format(pid=pid)) as f:
+    #     active_window_name = f.read()
+    # print("Active window: %s" % str(active_window_name))
+elif sys.platform in ['Windows', 'win32', 'cygwin']:
+    import pygetwindow
+    window = pygetwindow.getWindowsWithTitle('Pegaxy - Mozilla Firefox')[0]
+    time.sleep(2)
+    window.maximize()
+    time.sleep(3)
 
-window = pygetwindow.getWindowsWithTitle('Pegaxy - Mozilla Firefox')[0]
-time.sleep(2)
-window.maximize()
-time.sleep(5)
 
 def print_screen():
     with mss.mss() as sct:
         monitor = sct.monitors[0]
-        sct_img = numpy.array(sct.grab(monitor))
-
+        sct_img = numpy.array(sct.grab(monitor))        
+                
         # Grab the data
         return sct_img[:, :, :3]
 
@@ -125,29 +141,48 @@ def load_screenshots(dir_path='./screenshots/'):
 
 def already_race_menu():
     matches = locate_coordinates(images['racing_menu_on'])
-    return len(matches[0]) > 0
+    result = len(matches[0]) > 0
+    if result:
+        print('you are already in race menu')
+    return result
 
 
-def do_click(img, timeout=3, threshold=0.8):
-
-    start = time.time()
-    has_timed_out = False
-    while(not has_timed_out):
-        matches = locate_coordinates(img, threshold)
-
-        if(len(matches[0]) == 0):
-            has_timed_out = time.time()-start > timeout
-            continue
-
-        x, y, w, h = matches[0][0]
-        pos_x = x + w / 2
-        pos_y = y + h / 2
-        move_cursor(pos_x, pos_y, 1)
-        pyautogui.click(clicks=2)
-        return True
-
-    return False
+def do_click(img, timeout=3, threshold=0.8, maxrecursion=1):
+    tryes_count = 0
     
+    def inner_do_click():
+        start = time.time()
+        has_timed_out = False
+        while(not has_timed_out):
+            matches = locate_coordinates(img, threshold)
+
+            if(len(matches[0]) == 0):
+                has_timed_out = time.time()-start > timeout
+                continue
+
+            x, y, w, h = matches[0][0]
+            pos_x = x + w / 2
+            pos_y = y + h / 2
+            print(f'template match found... coordinates: x=>{pos_x}, y=>{pos_y}')
+            move_cursor(pos_x, pos_y, 1)
+            pyautogui.click(clicks=2)
+            return True
+
+        return False
+       
+    wasClicked = False
+    
+    while  wasClicked == False and tryes_count < maxrecursion:
+        tryes_count += 1
+        if tryes_count > 1:
+            time.sleep(1)
+        wasClicked = inner_do_click()
+
+    if maxrecursion != 1 and wasClicked == False:
+        print('Max tries was reached without any matches!')
+
+    return wasClicked    
+         
     
 def workbot():
 
@@ -155,14 +190,11 @@ def workbot():
     images = load_screenshots()
 
 
-
     while True:
         print('Pressing start...')
-        do_click(images['start'])
-        do_click(images['start'])
-        do_click(images['start'])
-        do_click(images['start'])
-        do_click(images['start'])
+
+        if not do_click(images['start'],maxrecursion=5):
+            do_click(images['start2'],maxrecursion=5)
 
         if (do_click(images['empty_energy'], 0.7)):
 
@@ -178,7 +210,7 @@ def workbot():
             while True:
                 print('Waiting metamask sign...')
                 do_click(images['sign'], 30)
-                time.sleep(3)
+                time.sleep(5)
                 if (do_click(images['find_another'])):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
                 else:
@@ -193,12 +225,19 @@ def workbot():
             
         
     time.sleep(3)
-    
-images = load_screenshots()
 
+print('Clenaup old capture files...')    
+try:
+    for f in glob.glob('Capture*.png'):
+        remove(f)
+except Exception as e:
+    print(f'Error when delete files: {str(e)}')
+
+images = load_screenshots()
  
-print('Acessing racing menu...')
-do_click(images['racing_menu'])
+if not already_race_menu():
+  print('Acessing racing menu...')
+  do_click(images['racing_menu'])
 
 print('Picking the pegaxy...')
 do_click(images['pick_a_pega'])
@@ -230,7 +269,6 @@ for pt in zip(*loc[::-1]):
     loc1 = (r'Capture.png')
     pyautogui.screenshot(loc1)
 
-
  # Reads the file
     template_file_ore = r"horse.png"
     template_ore = cv2.imread(template_file_ore)
@@ -241,28 +279,20 @@ for pt in zip(*loc[::-1]):
     threshold = 0.8
     loc = numpy.where(res >= threshold)
 
-
   # Reads the screen shot and loads the image it will be compared too
     img_rgb = cv2.imread(loc1)
     cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-    count = count + 1
-    
-
+    count = count + 1  
         
     print(f"Horse {count} found.")
 
 horses = locate_coordinates(template_ore)
 
-
 horse1x =  horses[0][0][0]
 horse1y= horses[0][0][1]
 
-
-
 horse2x =  horses[0][1][0]
 horse2y= horses[0][1][1]
-
-
 
 
 horse3x =  horses[0][2][0]
