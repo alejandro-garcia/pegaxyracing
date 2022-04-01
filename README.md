@@ -103,14 +103,11 @@ python main.py
 	
 ```
 - Organize code.
-- Solve start buttom bug.
 - Solve expected bug if user has less than three horses (IndexError).
 - Make code smarter, work only if energy != 0/0.
-- Take horses name.
-- Save race data by horse.
+- Add config yml file to setup desired images (localizations)
+- Improve async logic with rxpy
 ```
-
-
 
 ### Found a bug or questions?
 
@@ -120,5 +117,5 @@ python main.py
 ### Do you like it ? Buy me a coffee or a horse! Wallet (Polygon / BSC):
 
 ```
-0xEEf8F8023C3d24276Bd807705C213d6994c064b6
+0x57D202ab4813D948Fa425A954C4341Be090E8634
 ```

@@ -140,10 +140,12 @@ def load_screenshots(dir_path='./screenshots/'):
 
 
 def already_race_menu():
+    print('verifying racing menu...')
     matches = locate_coordinates(images['racing_menu_on'])
     result = len(matches[0]) > 0
     if result:
-        print('you are already in race menu')
+        if not do_click(images['next_match_f']):
+            print('you are already in race menu')
     return result
 
 
@@ -165,7 +167,15 @@ def do_click(img, timeout=3, threshold=0.8, maxrecursion=1):
             pos_y = y + h / 2
             print(f'template match found... coordinates: x=>{pos_x}, y=>{pos_y}')
             move_cursor(pos_x, pos_y, 1)
-            pyautogui.click(clicks=2)
+
+            if maxrecursion != 1:
+                pyautogui.click(clicks=2,interval=0.7)
+                pos_x, pos_y = pyautogui.position()
+                pos_y -= 50
+                move_cursor(pos_x, pos_y, 1)
+            else:
+                pyautogui.click(clicks=2)
+
             return True
 
         return False
@@ -209,9 +219,11 @@ def workbot():
             
             while True:
                 print('Waiting metamask sign...')
-                do_click(images['sign'], 30)
+                do_click(images['sign_brave'], 30)
                 time.sleep(5)
-                if (do_click(images['find_another'])):
+                if (do_click(images['find_another_brave'])):
+                    print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
+                elif (do_click(images['reload'])):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
                 else:
                     print('Starting race...')
@@ -219,7 +231,7 @@ def workbot():
                     countRace = countRace + 1
                     print(Fore.GREEN + f'{horseName} horse running the race number {countRace}, please wait...' + Style.RESET_ALL)
                     time.sleep(100)
-                    do_click(images['next_match'], 300)
+                    do_click(images['next_match_f'], 300)
                     print('Next race...')
                     break
             
@@ -233,6 +245,8 @@ try:
 except Exception as e:
     print(f'Error when delete files: {str(e)}')
 
+
+print('loading screenshots...')    
 images = load_screenshots()
  
 if not already_race_menu():
@@ -329,6 +343,7 @@ while True:
     nowString = nowHour + " - " + nowDate
     print(Back.CYAN + Fore.RED + f'Sleeping {sleepMinutes} minutes after {countRace} race(s).  {nowString}' + Style.RESET_ALL)
     time.sleep(sleepScript)
+    
 
 
 
