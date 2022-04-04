@@ -103,7 +103,6 @@ python main.py
 	
 ```
 - Organize code.
-- Solve expected bug if user has less than three horses (IndexError).
 - Make code smarter, work only if energy != 0/0.
 - Add config yml file to setup desired images (localizations)
 - Improve async logic with rxpy
