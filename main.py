@@ -203,8 +203,12 @@ def workbot():
     while True:
         print('Pressing start...')
 
-        if not do_click(images['start'],maxrecursion=5):
-            do_click(images['start2'],maxrecursion=5)
+        if not do_click(images['start3'],maxrecursion=5):
+            #do_click(images['start2'],maxrecursion=5)
+            print('Cannot find start button...')
+            pyautogui.hotkey('ctrl', 'f5')
+            time.sleep(3)
+            break
 
         if (do_click(images['empty_energy'], 0.7)):
 
@@ -302,39 +306,50 @@ for pt in zip(*loc[::-1]):
 
 horses = locate_coordinates(template_ore)
 
-horse1x =  horses[0][0][0]
-horse1y= horses[0][0][1]
+count_horses = len(horses)
 
-horse2x =  horses[0][1][0]
-horse2y= horses[0][1][1]
+if count_horses == 0:
+    print('You not have horses')
+    sys.exit()
 
+if count_horses >= 1:
+   horse1x =  horses[0][0][0]
+   horse1y= horses[0][0][1]
 
-horse3x =  horses[0][2][0]
-horse3y= horses[0][2][1]
+if count_horses >= 2:
+   horse2x =  horses[0][1][0]
+   horse2y= horses[0][1][1]
+
+if count_horses == 3:
+   horse3x =  horses[0][2][0]
+   horse3y= horses[0][2][1]
 
 
 while True:
-    pyautogui.hotkey('ctrl', 'f5')
-    horseName= "First"
-    print(f"Clicking {horseName} horse")
-    time.sleep(3)
-    pyautogui.click(horse1x,  horse1y)
-    time.sleep(3)
-    workbot()
+    #pyautogui.hotkey('ctrl', 'f5')
+    if count_horses >= 1:
+        horseName= "First"
+        print(f"Clicking {horseName} horse")
+        time.sleep(3)
+        pyautogui.click(horse1x,  horse1y)
+        time.sleep(3)
+        workbot()
 
-    horseName= "Second"
-    print(f"Clicking {horseName} horse")
-    time.sleep(3)
-    pyautogui.doubleClick(horse2x,  horse2y)
-    time.sleep(3)
-    workbot()
+    if count_horses >= 2:
+        horseName= "Second"
+        print(f"Clicking {horseName} horse")
+        time.sleep(3)
+        pyautogui.doubleClick(horse2x,  horse2y)
+        time.sleep(3)
+        workbot()
 
-    horseName= "Third"
-    print(f"Clicking {horseName} horse")
-    time.sleep(3)
-    pyautogui.click(horse3x,  horse3y)
-    time.sleep(3)
-    workbot()
+    if count_horses == 3:
+        horseName= "Third"
+        print(f"Clicking {horseName} horse")
+        time.sleep(3)
+        pyautogui.click(horse3x,  horse3y)
+        time.sleep(3)
+        workbot()
     
     sleepMinutes = 60
     sleepScript = sleepMinutes*60
