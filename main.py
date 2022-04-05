@@ -149,6 +149,10 @@ def already_race_menu():
     return result
 
 
+def validate_image_present(img):
+    matches = locate_coordinates(images[img], 0.8)
+    return len(matches[0]) > 0
+
 def do_click(img, timeout=3, threshold=0.8, maxrecursion=1):
     tryes_count = 0
     
@@ -210,34 +214,44 @@ def workbot():
             time.sleep(3)
             break
 
-        if (do_click(images['empty_energy'], 0.7)):
+        elif (do_click(images['empty_energy'], 0.7)):
 
             print(Fore.RED + f'{horseName} horse without energy...' + Style.RESET_ALL)
 
-            print('Refreshing page...')
-            pyautogui.hotkey('ctrl', 'f5')
-            time.sleep(5)
+            #print('Refreshing page...')
+            #pyautogui.hotkey('ctrl', 'f5')
+            time.sleep(3)
             break
         else:
 
             
             while True:
                 print('Waiting metamask sign...')
-                do_click(images['sign_brave'], 30)
+                do_click(images['sign_firefox'], 30)
                 time.sleep(5)
                 if (do_click(images['find_another_brave'])):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
                 elif (do_click(images['reload'])):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
+                elif validate_image_present('joining'):
+                    print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
+                elif validate_image_present('sign_firefox'):
+                    print(Fore.YELLOW + 'Fail to start race, metamask sign button still present...' + Style.RESET_ALL)
                 else:
                     print('Starting race...')
                     global countRace
                     countRace = countRace + 1
                     print(Fore.GREEN + f'{horseName} horse running the race number {countRace}, please wait...' + Style.RESET_ALL)
                     time.sleep(100)
-                    do_click(images['next_match_f'], 300)
-                    print('Next race...')
-                    break
+                    if do_click(images['next_match_f'], 300):                        
+                      print('Next race...')
+                      break
+                    elif do_click(images['cancel'], 300):
+                      print('Join to race Error')
+                      print('Refreshing page...')
+                      pyautogui.hotkey('ctrl', 'f5')
+                      time.sleep(5)
+                      break
             
         
     time.sleep(3)
@@ -272,7 +286,7 @@ img_rgb = cv2.imread(loc1)
 count = 0
 
 # Reads the file
-template_file_ore = r"horse.png"
+template_file_ore = r"horse_firefox.png"
 template_ore = cv2.imread(template_file_ore)
 w, h = template_ore.shape[:-1]
 
@@ -288,7 +302,7 @@ for pt in zip(*loc[::-1]):
     pyautogui.screenshot(loc1)
 
  # Reads the file
-    template_file_ore = r"horse.png"
+    template_file_ore = r"horse_firefox.png"
     template_ore = cv2.imread(template_file_ore)
     w, h = template_ore.shape[:-1]
 
@@ -304,50 +318,49 @@ for pt in zip(*loc[::-1]):
         
     print(f"Horse {count} found.")
 
+
 horses = locate_coordinates(template_ore)
 
-count_horses = len(horses)
-
-if count_horses == 0:
+if count == 0:
     print('You not have horses')
     sys.exit()
 
-if count_horses >= 1:
-   horse1x =  horses[0][0][0]
-   horse1y= horses[0][0][1]
+if count >= 1:
+    horse1X = horses[0][0][0]
+    horse1Y = horses[0][0][1]
 
-if count_horses >= 2:
-   horse2x =  horses[0][1][0]
-   horse2y= horses[0][1][1]
+if count >= 2:
+    horse2X = horses[0][1][0]
+    horse2Y = horses[0][1][1]
 
-if count_horses == 3:
-   horse3x =  horses[0][2][0]
-   horse3y= horses[0][2][1]
+if count >= 3:
+    horse3X = horses[0][2][0]
+    horse3Y = horses[0][2][1]
 
 
 while True:
     #pyautogui.hotkey('ctrl', 'f5')
-    if count_horses >= 1:
+    if count >= 1:
         horseName= "First"
         print(f"Clicking {horseName} horse")
         time.sleep(3)
-        pyautogui.click(horse1x,  horse1y)
+        pyautogui.click(horse1X, horse1Y)
         time.sleep(3)
         workbot()
 
-    if count_horses >= 2:
+    if count >= 2:
         horseName= "Second"
         print(f"Clicking {horseName} horse")
         time.sleep(3)
-        pyautogui.doubleClick(horse2x,  horse2y)
+        pyautogui.click(horse2X, horse2Y)
         time.sleep(3)
         workbot()
 
-    if count_horses == 3:
+    if count == 3:
         horseName= "Third"
         print(f"Clicking {horseName} horse")
-        time.sleep(3)
-        pyautogui.click(horse3x,  horse3y)
+        time.sleep(3)       
+        pyautogui.click(horse3X,  horse3Y)
         time.sleep(3)
         workbot()
     
@@ -358,7 +371,5 @@ while True:
     nowString = nowHour + " - " + nowDate
     print(Back.CYAN + Fore.RED + f'Sleeping {sleepMinutes} minutes after {countRace} race(s).  {nowString}' + Style.RESET_ALL)
     time.sleep(sleepScript)
+    pyautogui.hotkey('ctrl', 'f5')
     
-
-
-
