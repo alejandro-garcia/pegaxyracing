@@ -9,6 +9,7 @@ from colorama import Fore, Back, Style
 from datetime import datetime
 import sys
 import glob
+import random
 
 now = datetime.now()
 
@@ -153,7 +154,7 @@ def validate_image_present(img):
     matches = locate_coordinates(images[img], 0.8)
     return len(matches[0]) > 0
 
-def do_click(img, timeout=3, threshold=0.8, maxrecursion=1):
+def do_click(img, timeout=3, threshold=0.8, maxrecursion=1, randomx=False):
     tryes_count = 0
     
     def inner_do_click():
@@ -168,6 +169,11 @@ def do_click(img, timeout=3, threshold=0.8, maxrecursion=1):
 
             x, y, w, h = matches[0][0]
             pos_x = x + w / 2
+            if randomx:
+                seed_value = random.randint(1,15)
+                print(f'seed increment: {seed_value}')
+                pos_x += seed_value
+
             pos_y = y + h / 2
             print(f'template match found... coordinates: x=>{pos_x}, y=>{pos_y}')
             move_cursor(pos_x, pos_y, 1)
@@ -207,7 +213,7 @@ def workbot():
     while True:
         print('Pressing start...')
 
-        if not do_click(images['start3'],maxrecursion=5):
+        if not do_click(images['start3'],maxrecursion=5, randomx=True):
             #do_click(images['start2'],maxrecursion=5)
             print('Cannot find start button...')
             pyautogui.hotkey('ctrl', 'f5')
@@ -229,7 +235,7 @@ def workbot():
                 print('Waiting metamask sign...')
                 do_click(images['sign_firefox'], 30)
                 time.sleep(5)
-                if (do_click(images['find_another_brave'])):
+                if (do_click(images['find_another_brave'],randomx=True)):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
                 elif (do_click(images['reload'])):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
@@ -243,7 +249,7 @@ def workbot():
                     countRace = countRace + 1
                     print(Fore.GREEN + f'{horseName} horse running the race number {countRace}, please wait...' + Style.RESET_ALL)
                     time.sleep(100)
-                    if do_click(images['next_match_f'], 300):                        
+                    if do_click(images['next_match_f'], 300,randomx=True):                        
                       print('Next race...')
                       break
                     elif do_click(images['cancel'], 300):
