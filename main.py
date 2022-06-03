@@ -145,7 +145,7 @@ def already_race_menu():
     matches = locate_coordinates(images['racing_menu_on'])
     result = len(matches[0]) > 0
     if result:
-        if not do_click(images['next_match_f']):
+        if not do_click(images['next_match']):
             print('you are already in race menu')
     return result
 
@@ -235,21 +235,26 @@ def workbot():
                 print('Waiting metamask sign...')
                 do_click(images['sign_firefox'], 30)
                 time.sleep(5)
-                if (do_click(images['find_another_brave'],randomx=True)):
+                if (do_click(images['find_another'],randomx=True)):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
-                elif (do_click(images['reload'])):
-                    print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
+                elif validate_image_present('reload'):
+                    if (do_click(images['lobby'])):
+                        print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
+                    else:
+                        print('Join to race Error')
+                        print('Refreshing page...')
+                        pyautogui.hotkey('ctrl', 'f5')                        
                 elif validate_image_present('joining'):
                     print(Fore.YELLOW + 'Fail to start race, searching for another...' + Style.RESET_ALL)
                 elif validate_image_present('sign_firefox'):
                     print(Fore.YELLOW + 'Fail to start race, metamask sign button still present...' + Style.RESET_ALL)
                 else:
-                    print('Starting race...')
+                    print('Starting race...') 
                     global countRace
                     countRace = countRace + 1
                     print(Fore.GREEN + f'{horseName} horse running the race number {countRace}, please wait...' + Style.RESET_ALL)
                     time.sleep(100)
-                    if do_click(images['next_match_f'], 300,randomx=True):                        
+                    if do_click(images['next_match'], 300,randomx=True):                        
                       print('Next race...')
                       break
                     elif do_click(images['cancel'], 300):
@@ -292,7 +297,7 @@ img_rgb = cv2.imread(loc1)
 count = 0
 
 # Reads the file
-template_file_ore = r"horse_firefox.png"
+template_file_ore = r"horse.png"
 template_ore = cv2.imread(template_file_ore)
 w, h = template_ore.shape[:-1]
 
@@ -308,7 +313,7 @@ for pt in zip(*loc[::-1]):
     pyautogui.screenshot(loc1)
 
  # Reads the file
-    template_file_ore = r"horse_firefox.png"
+    template_file_ore = r"horse.png"
     template_ore = cv2.imread(template_file_ore)
     w, h = template_ore.shape[:-1]
 
@@ -320,8 +325,9 @@ for pt in zip(*loc[::-1]):
   # Reads the screen shot and loads the image it will be compared too
     img_rgb = cv2.imread(loc1)
     cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-    count = count + 1  
-        
+    count += 1  
+
+    #if count > 0:            
     print(f"Horse {count} found.")
 
 
@@ -330,6 +336,12 @@ horses = locate_coordinates(template_ore)
 if count == 0:
     print('You not have horses')
     sys.exit()
+
+#del(horses[0])
+
+print('*** begin: horses ***')
+print(horses)
+print('*** end: horses ***')
 
 if count >= 1:
     horse1X = horses[0][0][0]
